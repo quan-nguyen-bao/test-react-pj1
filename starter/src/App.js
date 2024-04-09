@@ -6,23 +6,25 @@ import { useEffect, useState } from "react";
 import * as BooksAPI from "./BooksAPI";
 
 function App() {
-  const [books, setBooks] = useState([]);
-  const shelves = [
-    { title: "Currently Reading", shelfName: "currentlyReading" },
-    { title: "Want to Read", shelfName: "wantToRead" },
-    { title: "Read", shelfName: "read" },
-  ];
+  const [bookList, setBookList] = useState([]);
 
   useEffect(() => {
-    BooksAPI.getAll().then((data) => {
-      setBooks(data);
-    });
+    const fetchBooks = async () => {
+      try {
+        const data = await BooksAPI.getAll();
+        setBookList(data);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      }
+    };
+
+    fetchBooks();
   }, []);
 
   const handleChange = (shelf, book) => {
     book.shelf = shelf;
     BooksAPI.update(book, shelf).then(() => {
-      setBooks([...books.filter((b) => b.id !== book.id), book]);
+      setBookList([...bookList.filter((b) => b.id !== book.id), book]);
     });
   };
 
@@ -30,12 +32,13 @@ function App() {
     <div className="app">
       <Routes>
         <Route
+          exact
           path="/"
-          element={<Home shelves={shelves} books={books} handleChange={handleChange} />}
+          element={<Home bookList={bookList} handleChange={handleChange} />}
         />
         <Route
           path="/search"
-          element={<Search books={books} handleChange={handleChange} />}
+          element={<Search bookList={bookList} handleChange={handleChange} />}
         />
       </Routes>
     </div>

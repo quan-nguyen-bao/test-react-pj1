@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { shelves } from "../utils/Utils";
 
 const Book = (props) => {
   const {
@@ -10,12 +11,6 @@ const Book = (props) => {
     handleChange,
     isSearching,
   } = props;
-
-  const shelves = [
-    { id: 1, title: "Currently Reading", shelfName: "currentlyReading" },
-    { id: 2, title: "Want to Read", shelfName: "wantToRead" },
-    { id: 3, title: "Read", shelfName: "read" },
-  ];
 
   return (
     <div className="book">
@@ -34,16 +29,9 @@ const Book = (props) => {
             onChange={(e) => handleChange(e.target.value, book)}
             value={bookShelf}
           >
-            {isSearching && (
-              <option value="none" disabled>
-                Add to...
-              </option>
-            )}
-            {!isSearching && (
-              <option value="none" disabled>
-                Move to...
-              </option>
-            )}
+            <option value="none" disabled>
+              {isSearching ? "Add to..." : "Move to..."}
+            </option>
             {shelves.map((shelf) => (
               <option key={shelf.id} value={shelf.shelfName}>
                 {shelf.title}

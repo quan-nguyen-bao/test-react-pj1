@@ -3,33 +3,39 @@ import { NavLink } from "react-router-dom";
 import * as BooksAPI from "../BooksAPI";
 import PropTypes from "prop-types";
 import Book from "../components/Book";
+import { getImageUrl, setShelves } from "../utils/Utils";
 
-const Search = (props) => {
-  const { handleChange, books } = props;
-  const [input, setInput] = useState("");
-  const [searchedBooks, setSearchedBooks] = useState([]);
-
-  const setShelves = (searchedBooks, allBooks) => {
-    return searchedBooks.map((book) => {
-      for (let b of allBooks) {
-        if (b.id === book.id) return { ...book, shelf: b.shelf };
-      }
-      return { ...book, shelf: "none" };
-    });
-  };
+const Search = ({ handleChange, bookList }) => {
+  const [searchText, setSearchText] = useState("");
+  const [searchedBookList, setSearchedBookList] = useState([]);
 
   useEffect(() => {
-    if (input.length !== 0) {
-      BooksAPI.search(input)
-        .then((searchedBooks) => {
-          if (!input || searchedBooks.error) {
-            return setSearchedBooks([]);
+    const fetchData = async () => {
+      if (searchText.trim() !== "") {
+        try {
+          const searchedBooks = await BooksAPI.search(searchText);
+          if (searchedBooks.error) {
+            setSearchedBookList([]);
+          } else {
+            const updatedSearchedBookList = setShelves(searchedBooks, bookList);
+            setSearchedBookList(updatedSearchedBookList);
           }
-          setSearchedBooks(setShelves(searchedBooks, books));
-        })
-        .catch((err) => console.log("SearchError:", err));
-    } else setSearchedBooks([]);
-  }, [books, input]);
+        } catch (error) {
+          console.log("SearchError:", error);
+          setSearchedBookList([]);
+        }
+      } else {
+        setSearchedBookList([]);
+      }
+    };
+
+    fetchData();
+  }, [bookList, searchText]);
+
+  const handleSearchChange = (e) => {
+    e.preventDefault();
+    setSearchText(e.target.value);
+  };
 
   return (
     <div className="search-books">
@@ -41,26 +47,23 @@ const Search = (props) => {
           <input
             type="text"
             placeholder="Search by title, author, or ISBN"
-            value={input}
-            onChange={(e) => {
-              e.preventDefault();
-              setInput(e.target.value);
-            }}
+            value={searchText}
+            onChange={(e) => handleSearchChange(e)}
           />
         </div>
       </div>
 
-      {input && (
+      {searchText && (
         <div className="search-books-results">
           <ol className="books-grid">
-            {searchedBooks.map((book, key) => (
+            {searchedBookList.map((book, key) => (
               <li key={key}>
                 <Book
                   book={book}
                   bookTitle={book.title}
                   author={book.authors}
                   bookShelf={book.shelf}
-                  imgURL={book.imageLinks && book.imageLinks.smallThumbnail}
+                  imgURL={getImageUrl(book.imageLinks)}
                   handleChange={handleChange}
                   isSearching={true}
                 />
@@ -77,5 +80,5 @@ export default Search;
 
 Search.propTypes = {
   handleChange: PropTypes.func.isRequired,
-  books: PropTypes.array.isRequired,
+  bookList: PropTypes.array.isRequired,
 };

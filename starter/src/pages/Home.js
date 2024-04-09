@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import Bookshelf from "../components/BookShelf";
+import Book from "../components/Book";
+import { filterBooksByShelf, getImageUrl, shelves } from "../utils/Utils";
 
 const Home = (props) => {
-  const { shelves, books, handleChange } = props;
+  const { bookList, handleChange } = props;
 
   return (
     <div className="list-books">
@@ -13,16 +14,29 @@ const Home = (props) => {
         </div>
         <div className="list-books-content">
           <div>
-            {shelves.map((shelf, key) => (
-              <Bookshelf
-                key={key}
-                shelfTitle={shelf.title}
-                books={
-                  books &&
-                  books.filter((book) => book && book.shelf === shelf.shelfName)
-                }
-                handleChange={handleChange}
-              />
+            {shelves.map((shelf) => (
+              <div key={shelf.id} className="bookshelf">
+                <h2 className="bookshelf-title">{shelf.title}</h2>
+                <div className="bookshelf-books">
+                  <ol className="books-grid">
+                    {filterBooksByShelf(bookList, shelf.shelfName) &&
+                      filterBooksByShelf(bookList, shelf.shelfName).map(
+                        (book) => (
+                          <li key={book.id}>
+                            <Book
+                              book={book}
+                              bookTitle={book.title}
+                              author={book.authors}
+                              bookShelf={book.shelf}
+                              imgURL={getImageUrl(book.imageLinks)}
+                              handleChange={handleChange}
+                            />
+                          </li>
+                        )
+                      )}
+                  </ol>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -38,7 +52,6 @@ const Home = (props) => {
 export default Home;
 
 Home.propTypes = {
-  shelves: PropTypes.array.isRequired,
-  books: PropTypes.array,
+  bookList: PropTypes.array,
   handleChange: PropTypes.func.isRequired,
 };
